@@ -34,7 +34,8 @@ class ServiceController extends Controller
             return response()->json(["error"=>"invalid image"], 200);
         }else{
             $newImage = time().'-'.$req->image->getClientOriginalName();
-            $req->image->move(public_path('service/logo'), $newImage);
+            // $req->image->move(public_path('service/logo'), $newImage);
+            $req->image->storeAs('service/logo',$newImage,'public');
             $service = new Service;
             $service->title = strip_tags($req->title);
             $service->logo = $newImage;
