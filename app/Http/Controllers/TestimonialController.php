@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Testimonial;
-use Illuminate\Support\Facades\validator;
+use Illuminate\Support\Facades\Validator;
 
 class TestimonialController extends Controller
 {

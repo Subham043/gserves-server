@@ -7,7 +7,7 @@ use App\Models\Service;
 use App\Models\Sub_Service;
 use App\Models\Sub_Service_Fields;
 use App\Models\User;
-use Illuminate\Support\Facades\validator;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;

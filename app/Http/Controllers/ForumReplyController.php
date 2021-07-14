@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Forum;
 use App\Models\Forum_Reply;
-use Illuminate\Support\Facades\validator;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 
 class ForumReplyController extends Controller
