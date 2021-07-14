@@ -25,7 +25,7 @@ class SubServiceController extends Controller
        
 
         $rules = array(
-            "title" => "required|min:3",
+            "name" => "required|min:3",
             "storage_table_name" => "required|min:3|alpha|max:30|unique:sub__services",
         );
         $validator = Validator::make($req->all(), $rules);
