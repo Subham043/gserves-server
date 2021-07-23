@@ -50,6 +50,7 @@ class UserController extends Controller
     //login
     function login(Request $request)
     {
+        
             $user= User::where('email', strip_tags($request->email))->first();
             if (!$user || !Hash::check(strip_tags($request->password), $user->password)) {
                

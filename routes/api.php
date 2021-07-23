@@ -9,6 +9,7 @@ use App\Http\Controllers\SubServiceFieldController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\ForumReplyController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,3 +64,6 @@ Route::post('forum-reply/create/{forum_id}', [ForumReplyController::class, 'crea
 Route::put('forum-reply/update/{id}', [ForumReplyController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('forum-reply/delete/{id}', [ForumReplyController::class, 'delete'])->middleware('auth:sanctum');
 Route::get('forum-reply/view/{forum_id}', [ForumReplyController::class, 'view']);
+Route::post('admin/login', [AdminController::class, 'login']);
+Route::post('admin/forgot-password', [AdminController::class, 'forgot_password']);
+Route::post('admin/reset-password/{email}', [AdminController::class, 'reset_password']);

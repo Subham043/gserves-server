@@ -8,11 +8,14 @@ use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
+
 class ServiceController extends Controller
 {
     
+    
     //create services
     public function create(Request $req){
+        // return response()->json(["result"=>$req->image], 200);
         $user = auth()->user();
         if(!$user){
             return response()->json(["error"=>"unauthorised"], 200);
