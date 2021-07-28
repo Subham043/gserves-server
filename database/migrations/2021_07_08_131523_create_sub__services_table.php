@@ -16,7 +16,17 @@ class CreateSubServicesTable extends Migration
         Schema::create('sub__services', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('description');
+            $table->string('tag_line');
             $table->string('storage_table_name')->unique();
+            $table->string('city');
+            $table->string('output');
+            $table->integer('option')->default(0);
+            $table->string('time_taken');
+            $table->string('tracking_url')->unique();
+            $table->integer('govt_fees');
+            $table->integer('other_expenses');
+            $table->integer('service_charges');
             $table->integer('service_id');
             $table->integer('user_id');
             $table->timestamp('created_at')->nullable(true)->useCurrent();

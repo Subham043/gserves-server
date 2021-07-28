@@ -89,6 +89,17 @@ class AdminController extends Controller
         }
      }
 
+     public function checkAdmin(){
+        $user = auth()->user();
+        if($user->is_admin==0){
+            return response()->json(["error"=>"invalid token"], 200);
+        }else if($user->email_verified==0){
+            return response()->json(["error"=>"invalid token"], 200);
+        }else{
+            return ["result" => "valid token"];
+        }
+     }
+
 
 
 }

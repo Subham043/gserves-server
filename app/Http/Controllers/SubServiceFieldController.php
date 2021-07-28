@@ -41,9 +41,9 @@ class SubServiceFieldController extends Controller
             if(!$sub_service){
                 return response()->json(["error"=>"invalid sub-service id"], 200);
             }
-            $Field_Name = strip_tags($req->field_name);
+            $Field_Name = strtolower(strip_tags($req->field_name));
             $service_field = new Sub_Service_Fields;
-            $service_field->field_name = strip_tags($req->field_name);
+            $service_field->field_name = strtolower(strip_tags($req->field_name));
             $service_field->field_type = strip_tags($req->field_type);
             $service_field->sub_service_id = $sub_service_id;
             $service_field->service_id = $sub_service->service_id;
@@ -67,10 +67,14 @@ class SubServiceFieldController extends Controller
                 Schema::table($sub_service->storage_table_name, function (Blueprint $table) use ($Field_Name) {
                     $table->date($Field_Name)->nullable(true);
                 });
+            }else if($req->field_type=="attatchment" ){
+                Schema::table($sub_service->storage_table_name, function (Blueprint $table) use ($Field_Name) {
+                    $table->string($Field_Name)->nullable(true);
+                });
             }
             
             if($result){
-                return response()->json(["result"=>"sub-service-fields created"], 201);
+                return response()->json(["result"=>"form field created"], 201);
             }else{
                 return response()->json(["error"=>"something went wrong. Please try again"], 200);
             }
@@ -94,7 +98,46 @@ class SubServiceFieldController extends Controller
         
 
         $sub_service_fields = Sub_Service_Fields::join('sub__services', 'sub__service__fields.sub_service_id', '=', 'sub__services.id')->where("sub__services.id", $sub_service_id)->where("sub__service__fields.status", 1)
-        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.title']);
+        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name']);
+
+        return response()->json(["result"=>$sub_service_fields], 200);
+
+     }
+
+
+      //view all custom-sub-services-fields
+      public function view_admin(){
+        $user = auth()->user();
+        if(!$user){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+        if($user->is_admin==0){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+        
+
+        $sub_service_fields = Sub_Service_Fields::join('sub__services', 'sub__service__fields.sub_service_id', '=', 'sub__services.id')
+        ->join('services', 'sub__service__fields.service_id', '=', 'services.id')
+        ->get(['sub__service__fields.id','sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name', 'services.title']);
+
+        return response()->json(["result"=>$sub_service_fields], 200);
+
+     }
+
+     //view all custom-sub-services-fields using sub-services id
+     public function view_admin_sub_service_id($sub_service_id){
+        $user = auth()->user();
+        if(!$user){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+        if($user->is_admin==0){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+        
+
+        $sub_service_fields = Sub_Service_Fields::join('sub__services', 'sub__service__fields.sub_service_id', '=', 'sub__services.id')
+        ->join('services', 'sub__service__fields.service_id', '=', 'services.id')->where("sub__services.id", $sub_service_id)
+        ->get(['sub__service__fields.id','sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name', 'services.title']);
 
         return response()->json(["result"=>$sub_service_fields], 200);
 
@@ -108,7 +151,7 @@ class SubServiceFieldController extends Controller
             return response()->json(["error"=>"unauthorised"], 200);
         }
         if($user->is_admin==0){
-            return response()->json(["error"=>"unauthorised"], 200);
+            return response()->json(["error"=>"admin unauthorised"], 200);
         }
 
         $sub_service_fields = Sub_Service_Fields::find($sub_service_fields_id);
@@ -120,7 +163,7 @@ class SubServiceFieldController extends Controller
             $sub_service_fields->status = 0;
             $result = $sub_service_fields->save();
             if($result){
-                return response()->json(["result"=>$sub_service_fields->field_name." field is unset"], 201);
+                return response()->json(["result"=>$sub_service_fields->field_name." field is inactive"], 201);
             }else{
                 return response()->json(["error"=>"something went wrong. Please try again"], 200);
             }
@@ -128,7 +171,7 @@ class SubServiceFieldController extends Controller
             $sub_service_fields->status = 1;
             $result = $sub_service_fields->save();
             if($result){
-                return response()->json(["result"=>$sub_service_fields->field_name." field is set"], 201);
+                return response()->json(["result"=>$sub_service_fields->field_name." field is active"], 201);
             }else{
                 return response()->json(["error"=>"something went wrong. Please try again"], 200);
             }
@@ -151,7 +194,7 @@ class SubServiceFieldController extends Controller
         
 
         $sub_service_fields = Sub_Service_Fields::join('sub__services', 'sub__service__fields.sub_service_id', '=', 'sub__services.id')->where("sub__services.id", $sub_service_id)->where("sub__service__fields.status", 1)
-        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.title']);
+        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name']);
 
         $rules = array();
 

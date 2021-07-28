@@ -24,10 +24,12 @@ class ServiceController extends Controller
             return response()->json(["error"=>"unauthorised"], 200);
         }
 
+        
         $rules = array(
-            "title" => "required|min:3",
+            "title" => "required|min:3|unique:services",
             "image" => "required|mimes:jpg,png,jpeg|max:2048",
-            "price" => "required|integer",
+            "city" => "required|integer",
+            "url" => "required|min:3|unique:services",
         );
         $validator = Validator::make($req->all(), $rules);
 
@@ -41,11 +43,12 @@ class ServiceController extends Controller
             $service = new Service;
             $service->title = strip_tags($req->title);
             $service->logo = $newImage;
-            $service->price = strip_tags($req->price);
+            $service->city = strip_tags($req->city);
+            $service->url = strtolower(strip_tags($req->url));
             $service->user_id = $user->id;
             $result = $service->save();
             if($result){
-                return response()->json(["result"=>"service created"], 201);
+                return response()->json(["result"=>"Department created"], 201);
             }else{
                 return response()->json(["error"=>"something went wrong. Please try again"], 200);
             }
@@ -66,24 +69,39 @@ class ServiceController extends Controller
 
         $service = Service::find($id);
         if(!$service){
-            return response()->json(["error"=>"invalid service id"], 200);
+            return response()->json(["error"=>"invalid department id"], 200);
         }
+
+        
 
         $rules = array(
             "title" => "required|min:3",
-            "price" => "required|integer",
+            "city" => "required|integer",
+            "url" => "required|min:3",
         );
         $validator = Validator::make($req->all(), $rules);
         if($validator->fails()){
             return $validator->errors();
         }else{
-            
+            $services = Service::all();
+            foreach($services as $services){
+                if($services->title == $req->title && $services->id!=$id){
+                    $validator = Validator::make([], []); // Empty data and rules fields
+                    $validator->errors()->add('title', 'This title is taken');
+                    return $validator->errors();
+                }else if($services->url == strtolower(strip_tags($req->url)) && $services->id!=$id){
+                    $validator = Validator::make([], []); // Empty data and rules fields
+                    $validator->errors()->add('url', 'This url is taken');
+                    return $validator->errors();
+                }
+            }
             $service->title = strip_tags($req->title);
-            $service->price = strip_tags($req->price);
+            $service->city = strip_tags($req->city);
+            $service->url = strtolower(strip_tags($req->url));
             $result = $service->save();
             
             if($result){
-                return response()->json(["result"=>"service updated"], 201);
+                return response()->json(["result"=>"Department updated"], 201);
             }else{
                 return response()->json(["error"=>"something went wrong. Please try again"], 200);
             }
@@ -102,7 +120,7 @@ class ServiceController extends Controller
 
         $service = Service::find($id);
         if(!$service){
-            return response()->json(["error"=>"invalid service id"], 200);
+            return response()->json(["error"=>"invalid department id"], 200);
         }
 
         $rules = array(
@@ -119,7 +137,7 @@ class ServiceController extends Controller
             $result = $service->save();
             
             if($result){
-                return response()->json(["result"=>"service updated"], 201);
+                return response()->json(["result"=>"Department updated"], 201);
             }else{
                 return response()->json(["error"=>"something went wrong. Please try again"], 200);
             }
@@ -138,23 +156,28 @@ class ServiceController extends Controller
 
         $service = Service::find($id);
         if(!$service){
-            return response()->json(["error"=>"invalid service id"], 200);
+            return response()->json(["error"=>"invalid department id"], 200);
         }
 
         unlink(public_path('service/logo/'.$service->logo));
         $service->delete();
-        return response()->json(["result"=>"service deleted"], 200);
+        return response()->json(["result"=>"Department deleted"], 200);
     }
 
-     //delete services logo
+     //view services logo
      public function view(){
-        return response()->json(["result"=>Service::all()], 200);
-        // $sub_service_fields = DB::table('services')
-        // ->join('sub__services', 'sub__services.service_id', '=', 'services.id')
-        // ->select('sub__services.id', 'sub__services.name', 'services.title', 'services.logo', 'services.price',)
-        // ->get();
-        // return response()->json(["result"=>$sub_service_fields], 200);
+        $services = Service::join('cities', 'cities.id', '=', 'services.city')
+        ->get(['services.*', 'cities.id as city_id', 'cities.name as city_name']);
 
+        return response()->json(["result"=>$services], 200);
+     }
+     
+     //view services by id
+     public function viewById($service_id){
+        $services = Service::find($service_id)->join('cities', 'cities.id', '=', 'services.city')
+        ->get(['services.*', 'cities.id as city_id', 'cities.name as city_name']);
+
+        return response()->json(["result"=>$services], 200);
      }
 
 
