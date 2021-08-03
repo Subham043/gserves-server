@@ -21,7 +21,9 @@ class CreateSubServicesTable extends Migration
             $table->string('storage_table_name')->unique();
             $table->string('city');
             $table->string('output');
-            $table->integer('option')->default(0);
+            $table->integer('option_online')->default(0);
+            $table->integer('option_person')->default(0);
+            $table->integer('option_representative')->default(0);
             $table->string('time_taken');
             $table->string('tracking_url')->unique();
             $table->integer('govt_fees');

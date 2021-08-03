@@ -174,7 +174,7 @@ class ServiceController extends Controller
      
      //view services by id
      public function viewById($service_id){
-        $services = Service::find($service_id)->join('cities', 'cities.id', '=', 'services.city')
+        $services = Service::join('cities', 'cities.id', '=', 'services.city')->where('services.id',$service_id)
         ->get(['services.*', 'cities.id as city_id', 'cities.name as city_name']);
 
         return response()->json(["result"=>$services], 200);

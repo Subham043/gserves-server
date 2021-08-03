@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSubServiceFieldsTable extends Migration
+class CreateFormFieldsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,12 @@ class CreateSubServiceFieldsTable extends Migration
      */
     public function up()
     {
-        Schema::create('sub__service__fields', function (Blueprint $table) {
+        Schema::create('form__fields', function (Blueprint $table) {
             $table->id();
             $table->string('field_name');
             $table->string('field_column_name');
             $table->string('field_type');
             $table->integer('status')->default(1);
-            $table->integer('sub_service_id');
-            $table->integer('service_id');
             $table->integer('user_id');
             $table->timestamp('created_at')->nullable(true)->useCurrent();
             $table->timestamp('updated_at')->nullable(true)->useCurrent();
@@ -34,6 +32,6 @@ class CreateSubServiceFieldsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('sub__service__fields');
+        Schema::dropIfExists('form__fields');
     }
 }

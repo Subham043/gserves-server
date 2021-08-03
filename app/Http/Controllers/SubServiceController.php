@@ -30,7 +30,6 @@ class SubServiceController extends Controller
             "tag_line" => "required",
             "city" => "required|integer",
             "output" => "required",
-            "option" => "required|integer",
             "time_taken" => "required",
             "govt_fees" => "required|integer",
             "other_expenses" => "required|integer",
@@ -55,7 +54,9 @@ class SubServiceController extends Controller
             $service->tag_line = strip_tags($req->tag_line);
             $service->city = strip_tags($req->city);
             $service->output = strip_tags($req->output);
-            $service->option = strip_tags($req->option);
+            $service->option_online = strip_tags($req->option_online);
+            $service->option_person = strip_tags($req->option_person);
+            $service->option_representative = strip_tags($req->option_representative);
             $service->time_taken = strip_tags($req->time_taken);
             $service->govt_fees = strip_tags($req->govt_fees);
             $service->other_expenses = strip_tags($req->other_expenses);
@@ -104,7 +105,6 @@ class SubServiceController extends Controller
             "tag_line" => "required",
             "city" => "required|integer",
             "output" => "required",
-            "option" => "required|integer",
             "time_taken" => "required",
             "govt_fees" => "required|integer",
             "other_expenses" => "required|integer",
@@ -121,7 +121,9 @@ class SubServiceController extends Controller
             $sub_service->tag_line = strip_tags($req->tag_line);
             $sub_service->city = strip_tags($req->city);
             $sub_service->output = strip_tags($req->output);
-            $sub_service->option = strip_tags($req->option);
+            $sub_service->option_online = strip_tags($req->option_online);
+            $sub_service->option_person = strip_tags($req->option_person);
+            $sub_service->option_representative = strip_tags($req->option_representative);
             $sub_service->time_taken = strip_tags($req->time_taken);
             $sub_service->govt_fees = strip_tags($req->govt_fees);
             $sub_service->other_expenses = strip_tags($req->other_expenses);

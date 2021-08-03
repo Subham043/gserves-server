@@ -19,6 +19,7 @@ class UserController extends Controller
             "last_name" => "required|min:3",
             "email" => "required|unique:users|email",
             "phone" => "required|min:10|max:15",
+            "password" => "required|min:5",
         );
         $validator = Validator::make($req->all(), $rules);
         if($validator->fails()){
@@ -33,6 +34,8 @@ class UserController extends Controller
                 $user->last_name = strip_tags($req->last_name);
                 $user->email = strip_tags($req->email);
                 $user->phone = strip_tags($req->phone);
+                $user->whatsapp_phone = strip_tags($req->whatsapp_phone);
+                $user->password = Hash::make(strip_tags($req->password));
                 $user->otp = random_int(100000, 999999);
                 $result = $user->save();
                 if($result){
@@ -134,8 +137,11 @@ class UserController extends Controller
                 $user->social_id = strip_tags($req->social_id);
                 $user->otp = random_int(100000, 999999);
                 $result = $user->save();
+                
                 if($result){
-                    return response()->json(["result"=>"user created", "email" => $user->email], 201);
+                    // return response()->json(["result"=>"user created", "email" => $user->email], 201);
+                    $token = $user->createToken('my-app-token')->plainTextToken;
+                    return response()->json(["result"=>"Email verified", "token" => $token], 200);
                 }else{
                     return response()->json(["error"=>"something went wrong. Please try again"], 200);
                 }
@@ -233,5 +239,14 @@ class UserController extends Controller
        
     }
 }
+
+public function checkUser(){
+    $user = auth()->user();
+    if($user->email_verified==0){
+        return response()->json(["error"=>"invalid token"], 200);
+    }else{
+        return ["result" => "valid token"];
+    }
+ }
 
 }

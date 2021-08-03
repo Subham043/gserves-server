@@ -102,12 +102,12 @@ class CityController extends Controller
         return response()->json(["result"=>"city deleted"], 200);
     }
 
-    //view sub-services
+    //view city
     public function view(){
         return response()->json(["result"=>City::all()], 200);
     }
 
-    //view sub-services by service id
+    //view city by service id
     public function viewById($city_id){
         return response()->json(["result"=>City::where('id',$city_id)->get()], 200);
     }

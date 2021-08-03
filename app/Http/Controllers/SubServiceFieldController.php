@@ -28,7 +28,7 @@ class SubServiceFieldController extends Controller
        
 
         $rules = array(
-            "field_name" => "required|min:3|alpha|max:30|unique:sub__service__fields",
+            "field_name" => "required|min:3|max:30",
             "field_type" => "required|min:3|alpha|max:30",
         );
         $validator = Validator::make($req->all(), $rules);
@@ -41,9 +41,10 @@ class SubServiceFieldController extends Controller
             if(!$sub_service){
                 return response()->json(["error"=>"invalid sub-service id"], 200);
             }
-            $Field_Name = strtolower(strip_tags($req->field_name));
+            $Field_Name = strtolower(str_replace(' ', '_', strip_tags($req->field_name))).time();
             $service_field = new Sub_Service_Fields;
-            $service_field->field_name = strtolower(strip_tags($req->field_name));
+            $service_field->field_name = (strip_tags($req->field_name));
+            $service_field->field_column_name = strtolower(str_replace(' ', '_', strip_tags($req->field_name))).time();
             $service_field->field_type = strip_tags($req->field_type);
             $service_field->sub_service_id = $sub_service_id;
             $service_field->service_id = $sub_service->service_id;
@@ -98,7 +99,7 @@ class SubServiceFieldController extends Controller
         
 
         $sub_service_fields = Sub_Service_Fields::join('sub__services', 'sub__service__fields.sub_service_id', '=', 'sub__services.id')->where("sub__services.id", $sub_service_id)->where("sub__service__fields.status", 1)
-        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name']);
+        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_column_name', 'sub__service__fields.field_type', 'sub__service__fields.field_column_name', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name']);
 
         return response()->json(["result"=>$sub_service_fields], 200);
 
@@ -194,36 +195,46 @@ class SubServiceFieldController extends Controller
         
 
         $sub_service_fields = Sub_Service_Fields::join('sub__services', 'sub__service__fields.sub_service_id', '=', 'sub__services.id')->where("sub__services.id", $sub_service_id)->where("sub__service__fields.status", 1)
-        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name']);
+        ->get(['sub__service__fields.field_name', 'sub__service__fields.field_column_name', 'sub__service__fields.field_type', 'sub__service__fields.status', 'sub__service__fields.sub_service_id', 'sub__service__fields.service_id', 'sub__services.storage_table_name', 'sub__services.name']);
 
         $rules = array();
-
+        
         foreach ($sub_service_fields as $obj) {
             if($obj->field_type=="email"){
-                $rules[$obj->field_name] =  "required|min:3|email";
+                $rules[$obj->field_column_name] =  "required|min:3|email";
             }else if($obj->field_type=="text"){
-                $rules[$obj->field_name] =  "required|min:3";
+                $rules[$obj->field_column_name] =  "required|min:3";
             }else if($obj->field_type=="description" || $obj->field_type=="date"){
-                $rules[$obj->field_name] =  "required";
+                $rules[$obj->field_column_name] =  "required";
             }else if($obj->field_type=="number" || $obj->field_type=="mobile"){
-                $rules[$obj->field_name] =  "required|integer";
+                $rules[$obj->field_column_name] =  "required|integer";
+            }else if($obj->field_type=="attatchment"){
+                $rules[$obj->field_column_name] =  "required|mimes:jpg,png,jpeg|max:2048";
             }
             
+            
          }
-
+         
          $validator = Validator::make($req->all(), $rules);
 
         if($validator->fails()){
             return $validator->errors();
         }else{
-
+            
             $data = array();
             foreach ($sub_service_fields as $obj) {
-                if(($obj->field_name!="sub_service_id") && ($obj->field_name!="service_id") && ($obj->field_name!="user_id")){
-                    $data[$obj->field_name] =  strip_tags($req->input($obj->field_name));
+                if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && ($obj->field_type=="attatchment")){
+                    
+                    $newImage = time().'-'.strip_tags($req->file($obj->field_column_name)->getClientOriginalName());
+                    $req->file($obj->field_column_name)->move(public_path('service/form'), $newImage);
+                    $data[$obj->field_column_name] =  $newImage;
+                }
+                else if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id")){
+                    $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
                 }
                 
             }
+            
             $data["sub_service_id"] =  $sub_service_id;
             $data["service_id"] =  $sub_service_fields[0]->service_id;
             $data["user_id"] =  $user->id;

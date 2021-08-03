@@ -11,6 +11,7 @@ use App\Http\Controllers\ForumController;
 use App\Http\Controllers\ForumReplyController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\FormFieldController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,7 +52,7 @@ Route::delete('service/delete/{id}', [ServiceController::class, 'delete'])->midd
 Route::post('sub-service/create/{service_id}', [SubServiceController::class, 'create'])->middleware('auth:sanctum');
 Route::get('sub-service/view', [SubServiceController::class, 'view']);
 Route::get('sub-service/view-by-service-id/{service_id}', [SubServiceController::class, 'viewById']);
-Route::get('sub-service/view-by-id/{sub_service_id}', [SubServiceController::class, 'viewBySubServiceId'])->middleware('auth:sanctum');
+Route::get('sub-service/view-by-id/{sub_service_id}', [SubServiceController::class, 'viewBySubServiceId']);
 Route::post('sub-service/update/{id}', [SubServiceController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('sub-service/delete/{id}', [SubServiceController::class, 'delete'])->middleware('auth:sanctum');
 Route::post('sub-service-fields/create/{sub_service_id}', [SubServiceFieldController::class, 'create'])->middleware('auth:sanctum');
@@ -60,8 +61,7 @@ Route::get('sub-service-fields/view-for-admin', [SubServiceFieldController::clas
 Route::get('sub-service-fields/view-for-admin-id/{sub_service_id}', [SubServiceFieldController::class, 'view_admin_sub_service_id'])->middleware('auth:sanctum');
 Route::post('sub-service-fields/set-status/{sub_service_field_id}', [SubServiceFieldController::class, 'set_status'])->middleware('auth:sanctum');
 Route::post('sub-service-fields/enter-data/{sub_service_id}', [SubServiceFieldController::class, 'create_custom_sub_service_field_data'])->middleware('auth:sanctum');
-Route::post('testimonial/create', [TestimonialController::class, 'create'])->middleware('auth:sanctum');
-Route::get('testimonial/view', [TestimonialController::class, 'view']);
+
 Route::post('forum/create', [ForumController::class, 'create'])->middleware('auth:sanctum');
 Route::get('forum/view', [ForumController::class, 'view']);
 Route::put('forum/update/{id}', [ForumController::class, 'update'])->middleware('auth:sanctum');
@@ -70,11 +70,27 @@ Route::post('forum-reply/create/{forum_id}', [ForumReplyController::class, 'crea
 Route::put('forum-reply/update/{id}', [ForumReplyController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('forum-reply/delete/{id}', [ForumReplyController::class, 'delete'])->middleware('auth:sanctum');
 
+
+// city api
 Route::post('city/create', [CityController::class, 'create'])->middleware('auth:sanctum');
 Route::get('city/view', [CityController::class, 'view']);
 Route::post('city/update/{id}', [CityController::class, 'update'])->middleware('auth:sanctum');
 Route::get('city/view-by-id/{id}', [CityController::class, 'viewById'])->middleware('auth:sanctum');
 Route::delete('city/delete/{id}', [CityController::class, 'delete'])->middleware('auth:sanctum');
+
+// form-fields api
+Route::post('form-field/create', [FormFieldController::class, 'create'])->middleware('auth:sanctum');
+Route::get('form-field/view-all', [FormFieldController::class, 'viewAll'])->middleware('auth:sanctum');
+Route::get('form-field/view/{id}', [FormFieldController::class, 'view'])->middleware('auth:sanctum');
+Route::post('form-field/set-status/{id}', [FormFieldController::class, 'set_status'])->middleware('auth:sanctum');
+
+// testimonial api
+Route::post('testimonial/create', [TestimonialController::class, 'create'])->middleware('auth:sanctum');
+Route::get('testimonial/view', [TestimonialController::class, 'view']);
+Route::post('testimonial/update/{id}', [TestimonialController::class, 'update'])->middleware('auth:sanctum');
+Route::get('testimonial/view-by-id/{id}', [TestimonialController::class, 'viewById'])->middleware('auth:sanctum');
+Route::post('testimonial/update-logo/{id}', [TestimonialController::class, 'update_logo'])->middleware('auth:sanctum');
+Route::delete('testimonial/delete/{id}', [TestimonialController::class, 'delete'])->middleware('auth:sanctum');
 
 Route::get('forum-reply/view/{forum_id}', [ForumReplyController::class, 'view']);
 Route::post('admin/login', [AdminController::class, 'login']);
@@ -82,3 +98,4 @@ Route::post('admin/forgot-password', [AdminController::class, 'forgot_password']
 Route::post('admin/reset-password/{email}', [AdminController::class, 'reset_password']);
 
 Route::get('admin/check', [AdminController::class, 'checkAdmin'])->middleware('auth:sanctum');
+Route::get('user/check', [UserController::class, 'checkUser'])->middleware('auth:sanctum');
