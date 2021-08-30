@@ -395,7 +395,7 @@ class SubServiceFormFieldController extends Controller
         }
 
         $sub_service_form_field = Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->get()->toArray();
-        // return['test'=>$sub_service_form_field];
+        
         if(count($sub_service_form_field)==0){
             $form__fields = DB::table('form__fields')->get()->toArray();
             $choices = DB::table('choices')->get()->toArray();
@@ -472,61 +472,53 @@ class SubServiceFormFieldController extends Controller
             return response()->json(["error"=>"invalid sub-service id"], 200);
         }
 
-        $sub_service_form_field = Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->orderBy('order_number')->get();
+        $sub_service_form_field = Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->where('status',1)->orderBy('order_number')->get();
         if(count($sub_service_form_field)==0){
             return response()->json(["error"=>"no fields available for this form"], 200);
         }
 
-        // $rules = array();
-
-        // foreach ($sub_service_form_field as $obj) {
-        //     if($obj->field_type=="email" ){
-        //         if($obj->mandatory==1){
-        //             $rules[$obj->field_column_name] =  "required|email";
-        //             $validator = Validator::make([], []); // Empty data and rules fields
-        //             $validator->errors()->add($obj->field_column_name, 'Atleast one master field must be selected');
-        //         }else{
-        //             $rules[$obj->field_column_name] =  "email";
-        //         }
-        //     }else if($obj->field_type=="text"){
-        //         if($obj->mandatory==1){
-        //             $rules[$obj->field_column_name] =  "required";
-        //         }
-        //     }else if($obj->field_type=="description" || $obj->field_type=="date"){
-        //         if($obj->mandatory==1){
-        //             $rules[$obj->field_column_name] =  "required";
-        //         }
-        //     }else if($obj->field_type=="number" || $obj->field_type=="mobile"){
-        //         if($obj->mandatory==1){
-        //             $rules[$obj->field_column_name] =  "required";
-        //         }
-        //     }else if($obj->field_type=="attatchment"){
-        //         if($obj->mandatory==1){
-        //             $rules[$obj->field_column_name] =  "required";
-        //         }
-        //     }
-            
-            
-        // }
-         
-        // $validator = Validator::make($req->all(), $rules);
-
-        // if($validator->fails()){
-        //     return $validator->errors();
-        // }
-
+        // return $sub_service_form_field[0]->storage_table_name;
         $data = array();
 
         foreach ($sub_service_form_field as $obj) {
             if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && ($obj->field_type=="attatchment")){
-                if($obj->mandatory==1 && ($_FILES[$obj->field_column_name]['name']!="")){
-                    $validator = Validator::make([], []); // Empty data and rules fields
-                    $validator->errors()->add('error', $obj->display_name.' requires a file to be uploaded');
-                    return $validator->errors();
+                if($obj->mandatory==1){
+                    if(isset(($_FILES[$obj->field_column_name]))){
+                        $extensions= array("jpeg","jpg","png");
+                        $file_ext=strip_tags($req->file($obj->field_column_name)->extension());
+                        if(in_array($file_ext,$extensions)=== false){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' supports .jpg, .png and .jpeg file');
+                            return $validator->errors();
+                        }else{
+                            $newImage = time().'-'.strip_tags($req->file($obj->field_column_name)->getClientOriginalName());
+                            $req->file($obj->field_column_name)->move(public_path('service/form'), $newImage);
+                            $data[$obj->field_column_name] =  $newImage;
+                        }
+                    }else{
+                        $validator = Validator::make([], []); // Empty data and rules fields
+                        $validator->errors()->add('error', $obj->display_name.' requires a file to be uploaded');
+                        return $validator->errors();
+                    }
+                    
+                }else{
+                    if(isset(($_FILES[$obj->field_column_name]))){
+                        $extensions= array("jpeg","jpg","png");
+                        $file_ext=strip_tags($req->file($obj->field_column_name)->extension());
+                        if(in_array($file_ext,$extensions)=== false){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' supports .jpg, .png and .jpeg file');
+                            return $validator->errors();
+                        }else{
+                            $newImage = time().'-'.strip_tags($req->file($obj->field_column_name)->getClientOriginalName());
+                            $req->file($obj->field_column_name)->move(public_path('service/form'), $newImage);
+                            $data[$obj->field_column_name] =  $newImage;
+                        }
+                    }else{
+                        $data[$obj->field_column_name] =  null;
+                    }
                 }
-                // $newImage = time().'-'.strip_tags($req->file($obj->field_column_name)->getClientOriginalName());
-                // $req->file($obj->field_column_name)->move(public_path('service/form'), $newImage);
-                // $data[$obj->field_column_name] =  $newImage;
+               
             }
             else if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && (($obj->field_type=="email")||($obj->field_type=="profile email"))){
                 if($obj->mandatory==1 && strlen(strip_tags($req->input($obj->field_column_name)))==0){
@@ -542,7 +534,11 @@ class SubServiceFormFieldController extends Controller
                     $validator->errors()->add('error', 'invalid '.$obj->display_name.' format' );
                     return $validator->errors();
                 }else{
-                    $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                        $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    }else{
+                        $data[$obj->field_column_name] =  null;
+                    }
                 }
                 
             }
@@ -560,7 +556,12 @@ class SubServiceFormFieldController extends Controller
                     $validator->errors()->add('error', $obj->display_name.' can contain only numeric characters' );
                     return $validator->errors();
                 }else{
-                    $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                        $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    }else{
+                        $data[$obj->field_column_name] =  null;
+                    }
+                    
                 }
                 
             }
@@ -578,7 +579,12 @@ class SubServiceFormFieldController extends Controller
                     $validator->errors()->add('error', $obj->display_name.' can contain only letters and spaces' );
                     return $validator->errors();
                 }else{
-                    $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                        $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    }else{
+                        $data[$obj->field_column_name] =  null;
+                    }
+                    
                 }
                 
             }
@@ -596,15 +602,319 @@ class SubServiceFormFieldController extends Controller
                     $validator->errors()->add('error', $obj->display_name.' cannot contain special characters' );
                     return $validator->errors();
                 }else{
-                    $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                        $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                    }else{
+                        $data[$obj->field_column_name] =  null;
+                    }
+                    
                 }
                 
             }
             
             
         }
-        return ["result" => $data];
+
+        $data["sub_service_id"] =  $sub_service_id;
+        $data["service_id"] =  $sub_service_form_field[0]->service_id;
+        $data["user_id"] =  $user->id;
+        $Table = $sub_service_form_field[0]->storage_table_name;
+
+        try {
+            DB::transaction(function () use ($data , $Table) {
+                DB::table($Table)->insert($data);
+            });
+            return response()->json(["result"=>"data stored"], 201);
+        }
+        catch(Exception $e) {
+            return response()->json(["error"=>"something went wrong. Please try again"], 200);
+        }
 
     }
+
+    //view all sub service form fields entry of data by user for that particular form
+    public function view_all_custom_sub_service_form_field_data_entry($sub_service_id){
+
+        $user = auth()->user();
+        if(!$user){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+
+        $sub_service = Sub_Service::find($sub_service_id);
+        if(!$sub_service){
+            return response()->json(["error"=>"invalid sub-service id"], 200);
+        }
+
+        $sub_service_form_field = Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->where('status',1)->orderBy('order_number')->get();
+        if(count($sub_service_form_field)==0){
+            return response()->json(["error"=>"no fields available for this form"], 200);
+        }
+
+        $storage_table_name = $sub_service_form_field[0]->storage_table_name;
+
+        $column_name = array("id");
+        foreach($sub_service_form_field as $field){
+            array_push($column_name,$field->field_column_name);
+        }
+
+        $data = DB::table($storage_table_name)->get($column_name);
+        return response()->json(["result" => $data]);
+
+    }
+
+
+    //view by id sub service form fields entry of data by user for that particular form
+    public function view_by_id_custom_sub_service_form_field_data_entry($id,$sub_service_id){
+
+        $user = auth()->user();
+        if(!$user){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+
+        $sub_service = Sub_Service::find($sub_service_id);
+        if(!$sub_service){
+            return response()->json(["error"=>"invalid sub-service id"], 200);
+        }
+
+        $sub_service_form_field = Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->where('status',1)->orderBy('order_number')->get();
+        if(count($sub_service_form_field)==0){
+            return response()->json(["error"=>"no fields available for this form"], 200);
+        }
+
+        $storage_table_name = $sub_service_form_field[0]->storage_table_name;
+
+        $column_name = array("id");
+        foreach($sub_service_form_field as $field){
+            array_push($column_name,$field->field_column_name);
+        }
+
+        $data = DB::table($storage_table_name)->where('id', $id)->get($column_name);
+        if(count($data)!=0){
+            return response()->json(["result" => $data[0]]);
+        }
+        return response()->json(["result" => $data]);
+
+    }
+
+     //delete by id sub service form fields entry of data by user for that particular form
+     public function delete_by_id_custom_sub_service_form_field_data_entry($id,$sub_service_id){
+        $user = auth()->user();
+        if(!$user){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+
+        $sub_service = Sub_Service::find($sub_service_id);
+        if(!$sub_service){
+            return response()->json(["error"=>"invalid sub-service id"], 200);
+        }
+
+        $sub_service_form_field = Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->where('status',1)->orderBy('order_number')->get();
+        if(count($sub_service_form_field)==0){
+            return response()->json(["error"=>"no fields available for this form"], 200);
+        }
+
+        $storage_table_name = $sub_service_form_field[0]->storage_table_name;
+
+        $column_name = array("id");
+        foreach($sub_service_form_field as $field){
+            array_push($column_name,$field->field_column_name);
+        }
+
+        $data = DB::table($storage_table_name)->where('id', $id)->get("user_id");
+        if(count($data)!=0){
+            if($data[0]->user_id == $user->id){
+                DB::table($storage_table_name)->where('id', $id)->delete();
+                return response()->json(["result" => "Data deleted successfully"]);
+            }else{
+                return response()->json(["error" => "Not eligible for the action"]);
+            }
+        }else{
+            return response()->json(["error" => "Invalid Id"]);
+        }
+        
+     }
+
+     //edit by id sub service form fields entry of data by user for that particular form
+    public function edit_by_id_custom_sub_service_form_field_data_entry(Request $req,$id,$sub_service_id){
+
+        $user = auth()->user();
+        if(!$user){
+            return response()->json(["error"=>"unauthorised"], 200);
+        }
+
+        $sub_service = Sub_Service::find($sub_service_id);
+        if(!$sub_service){
+            return response()->json(["error"=>"invalid sub-service id"], 200);
+        }
+
+        $sub_service_form_field = Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->where('status',1)->orderBy('order_number')->get();
+        if(count($sub_service_form_field)==0){
+            return response()->json(["error"=>"no fields available for this form"], 200);
+        }
+
+        $storage_table_name = $sub_service_form_field[0]->storage_table_name;
+
+        $column_name = array("id", "user_id");
+        $new_column_name = array();
+        foreach($sub_service_form_field as $field){
+            array_push($column_name,$field->field_column_name);
+            array_push($new_column_name,$field->field_column_name);
+        }
+
+        $data = DB::table($storage_table_name)->where('id', $id)->get($column_name);
+        if(count($data)!=0){
+            if($data[0]->user_id == $user->id){
+                $data = array();
+
+                foreach ($sub_service_form_field as $obj) {
+                    if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && ($obj->field_type=="attatchment")){
+                        if($obj->mandatory==1){
+                            if(isset(($_FILES[$obj->field_column_name]))){
+                                $extensions= array("jpeg","jpg","png");
+                                $file_ext=strip_tags($req->file($obj->field_column_name)->extension());
+                                if(in_array($file_ext,$extensions)=== false){
+                                    $validator = Validator::make([], []); // Empty data and rules fields
+                                    $validator->errors()->add('error', $obj->display_name.' supports .jpg, .png and .jpeg file');
+                                    return $validator->errors();
+                                }else{
+                                    $newImage = time().'-'.strip_tags($req->file($obj->field_column_name)->getClientOriginalName());
+                                    $req->file($obj->field_column_name)->move(public_path('service/form'), $newImage);
+                                    $data[$obj->field_column_name] =  $newImage;
+                                }
+                            }else{
+                                $validator = Validator::make([], []); // Empty data and rules fields
+                                $validator->errors()->add('error', $obj->display_name.' requires a file to be uploaded');
+                                return $validator->errors();
+                            }
+                            
+                        }else{
+                            if(isset(($_FILES[$obj->field_column_name]))){
+                                $extensions= array("jpeg","jpg","png");
+                                $file_ext=strip_tags($req->file($obj->field_column_name)->extension());
+                                if(in_array($file_ext,$extensions)=== false){
+                                    $validator = Validator::make([], []); // Empty data and rules fields
+                                    $validator->errors()->add('error', $obj->display_name.' supports .jpg, .png and .jpeg file');
+                                    return $validator->errors();
+                                }else{
+                                    $newImage = time().'-'.strip_tags($req->file($obj->field_column_name)->getClientOriginalName());
+                                    $req->file($obj->field_column_name)->move(public_path('service/form'), $newImage);
+                                    $data[$obj->field_column_name] =  $newImage;
+                                }
+                            }else{
+                                $data[$obj->field_column_name] =  null;
+                            }
+                        }
+                    
+                    }
+                    else if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && (($obj->field_type=="email")||($obj->field_type=="profile email"))){
+                        if($obj->mandatory==1 && strlen(strip_tags($req->input($obj->field_column_name)))==0){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' cannot be left blank');
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && strlen(strip_tags($req->input($obj->field_column_name)))>$obj->length){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' can have maximum '.$obj->length.' characters' );
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && !preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", strip_tags($req->input($obj->field_column_name))) ){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', 'invalid '.$obj->display_name.' format' );
+                            return $validator->errors();
+                        }else{
+                            if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                                $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                            }else{
+                                $data[$obj->field_column_name] =  null;
+                            }
+                        }
+                        
+                    }
+                    else if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && (($obj->field_type=="mobile")||($obj->field_type=="profile mobile")||($obj->field_type=="number")||($obj->field_type=="profile whatsapp"))){
+                        if($obj->mandatory==1 && strlen(strip_tags($req->input($obj->field_column_name)))==0){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' cannot be left blank');
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && strlen(strip_tags($req->input($obj->field_column_name)))>$obj->length){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' can have maximum '.$obj->length.' characters' );
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && !preg_match("/^[0-9][0-9 ]*$/", strip_tags($req->input($obj->field_column_name))) ){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' can contain only numeric characters' );
+                            return $validator->errors();
+                        }else{
+                            if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                                $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                            }else{
+                                $data[$obj->field_column_name] =  null;
+                            }
+                            
+                        }
+                        
+                    }
+                    else if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && (($obj->field_type=="profile name")||($obj->field_type=="text"))){
+                        if($obj->mandatory==1 && strlen(strip_tags($req->input($obj->field_column_name)))==0){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' cannot be left blank');
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && strlen(strip_tags($req->input($obj->field_column_name)))>$obj->length){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' can have maximum '.$obj->length.' characters' );
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && !preg_match("/^[a-zA-Z][a-zA-Z ]*$/", strip_tags($req->input($obj->field_column_name))) ){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' can contain only letters and spaces' );
+                            return $validator->errors();
+                        }else{
+                            if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                                $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                            }else{
+                                $data[$obj->field_column_name] =  null;
+                            }
+                            
+                        }
+                        
+                    }
+                    else if(($obj->field_column_name!="sub_service_id") && ($obj->field_column_name!="service_id") && ($obj->field_column_name!="user_id") && (($obj->field_type=="description")||($obj->field_type=="date"))){
+                        if($obj->mandatory==1 && strlen(strip_tags($req->input($obj->field_column_name)))==0){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' cannot be left blank');
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && strlen(strip_tags($req->input($obj->field_column_name)))>$obj->length){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' can have maximum '.$obj->length.' characters' );
+                            return $validator->errors();
+                        }else if(!empty(strip_tags($req->input($obj->field_column_name))) && !preg_match("/^[a-z 0-9~%.:_\@\-\/\&+=,]+$/i", strip_tags($req->input($obj->field_column_name))) ){
+                            $validator = Validator::make([], []); // Empty data and rules fields
+                            $validator->errors()->add('error', $obj->display_name.' cannot contain special characters' );
+                            return $validator->errors();
+                        }else{
+                            if(!empty(strip_tags($req->input($obj->field_column_name)))){
+                                $data[$obj->field_column_name] =  strip_tags($req->input($obj->field_column_name));
+                            }else{
+                                $data[$obj->field_column_name] =  null;
+                            }
+                            
+                        }
+                        
+                    }  
+                    
+                }
+
+                $update_data = array();
+                foreach($data as $data=>$val){
+                    $update_data[$data] = $val;
+                }
+                DB::table($storage_table_name)->where('id', $id)->update($update_data);
+                return response()->json(["result" => "Data updated successfully"]);
+
+            }else{
+                return response()->json(["error" => "Not eligible for the action"]);
+            }
+        }
+        return response()->json(["error" => "No data available"]);
+
+    }
+
+         
 
 }

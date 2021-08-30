@@ -109,6 +109,10 @@ Route::delete('contact/delete/{id}', [ContactEnquiryFormController::class, 'dele
 // sub service form fields
 Route::post('sub-service-form-fields/create/{sub_service_id}', [SubServiceFormFieldController::class, 'create'])->middleware('auth:sanctum');
 Route::post('sub-service-form-fields/create-form-entry/{sub_service_id}', [SubServiceFormFieldController::class, 'create_custom_sub_service_form_field_data_entry'])->middleware('auth:sanctum');
+Route::get('sub-service-form-fields/view-all-form-entry/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all_custom_sub_service_form_field_data_entry'])->middleware('auth:sanctum');
+Route::get('sub-service-form-fields/view-form-entry/{id}/{sub_service_id}', [SubServiceFormFieldController::class, 'view_by_id_custom_sub_service_form_field_data_entry'])->middleware('auth:sanctum');
+Route::post('sub-service-form-fields/edit-form-entry/{id}/{sub_service_id}', [SubServiceFormFieldController::class, 'edit_by_id_custom_sub_service_form_field_data_entry'])->middleware('auth:sanctum');
+Route::delete('sub-service-form-fields/delete-form-entry/{id}/{sub_service_id}', [SubServiceFormFieldController::class, 'delete_by_id_custom_sub_service_form_field_data_entry'])->middleware('auth:sanctum');
 Route::get('sub-service-form-fields/view-all/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all']);
 Route::get('sub-service-form-fields/view-all-order/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all_order']);
 Route::get('sub-service-form-fields/view-all-search/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all_search'])->middleware('auth:sanctum');
