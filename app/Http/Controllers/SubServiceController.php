@@ -28,14 +28,12 @@ class SubServiceController extends Controller
             "name" => "required|min:3",
             "description" => "required",
             "tag_line" => "required",
-            "city" => "required|integer",
             "output" => "required",
             "time_taken" => "required",
             "govt_fees" => "required|integer",
             "other_expenses" => "required|integer",
             "service_charges" => "required|integer",
             "tracking_url" => "required",
-            "storage_table_name" => "required|min:3|alpha|max:30|unique:sub__services",
         );
         $validator = Validator::make($req->all(), $rules);
 
@@ -45,14 +43,14 @@ class SubServiceController extends Controller
 
             $serv = Service::find($service_id);
             if(!$serv){
-                return response()->json(["error"=>"invalid master service"], 200);
+                return response()->json(["error"=>"Invalid Department ID"], 200);
             }
             
             $service = new Sub_Service;
             $service->name = strip_tags($req->name);
             $service->description = strip_tags($req->description);
             $service->tag_line = strip_tags($req->tag_line);
-            $service->city = strip_tags($req->city);
+            $service->city = $serv->city;
             $service->output = strip_tags($req->output);
             $service->option_online = strip_tags($req->option_online);
             $service->option_person = strip_tags($req->option_person);
@@ -62,11 +60,11 @@ class SubServiceController extends Controller
             $service->other_expenses = strip_tags($req->other_expenses);
             $service->service_charges = strip_tags($req->service_charges);
             $service->tracking_url = strip_tags($req->tracking_url);
-            $service->storage_table_name = strtolower(strip_tags($req->storage_table_name));
+            $service->storage_table_name = strtolower(strip_tags($req->name).'_'.$serv->title.'_'.time());
             $service->service_id = $service_id;
             $service->user_id = $user->id;
             $result = $service->save();
-            Schema::create(strtolower(strip_tags($req->storage_table_name)), function (Blueprint $table) {
+            Schema::create(strtolower(strip_tags($service->storage_table_name)), function (Blueprint $table) {
                 $table->id();
                 $table->integer('sub_service_id');
                 $table->integer('service_id');
@@ -103,7 +101,6 @@ class SubServiceController extends Controller
             "name" => "required|min:3",
             "description" => "required",
             "tag_line" => "required",
-            "city" => "required|integer",
             "output" => "required",
             "time_taken" => "required",
             "govt_fees" => "required|integer",
@@ -115,11 +112,16 @@ class SubServiceController extends Controller
         if($validator->fails()){
             return $validator->errors();
         }else{
+
+            $serv = Service::find(strip_tags($req->service_id));
+            if(!$serv){
+                return response()->json(["error"=>"Invalid Department ID"], 200);
+            }
             
             $sub_service->name = strip_tags($req->name);
             $sub_service->description = strip_tags($req->description);
             $sub_service->tag_line = strip_tags($req->tag_line);
-            $sub_service->city = strip_tags($req->city);
+            $sub_service->city = $serv->city;
             $sub_service->output = strip_tags($req->output);
             $sub_service->option_online = strip_tags($req->option_online);
             $sub_service->option_person = strip_tags($req->option_person);
@@ -129,6 +131,7 @@ class SubServiceController extends Controller
             $sub_service->other_expenses = strip_tags($req->other_expenses);
             $sub_service->service_charges = strip_tags($req->service_charges);
             $sub_service->tracking_url = strip_tags($req->tracking_url);
+            $sub_service->service_id = $serv->id;
             $result = $sub_service->save();
             
             if($result){

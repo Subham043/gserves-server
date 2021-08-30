@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\User;
+use App\Models\City;
+use App\Models\Sub_Service;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +30,6 @@ class ServiceController extends Controller
         $rules = array(
             "title" => "required|min:3|unique:services",
             "image" => "required|mimes:jpg,png,jpeg|max:2048",
-            "city" => "required|integer",
             "url" => "required|min:3|unique:services",
         );
         $validator = Validator::make($req->all(), $rules);
@@ -38,12 +39,17 @@ class ServiceController extends Controller
         }else if(!$req->file('image')->isValid()){
             return response()->json(["error"=>"invalid image"], 200);
         }else{
+            $city = City::find(strip_tags($req->city));
+            if(!$city){
+                return response()->json(["error"=>"Invalid City ID"], 200);
+            }
+
             $newImage = time().'-'.$req->image->getClientOriginalName();
             $req->image->move(public_path('service/logo'), $newImage);
             $service = new Service;
             $service->title = strip_tags($req->title);
             $service->logo = $newImage;
-            $service->city = strip_tags($req->city);
+            $service->city = strip_tags($city->id);
             $service->url = strtolower(strip_tags($req->url));
             $service->user_id = $user->id;
             $result = $service->save();
@@ -83,6 +89,10 @@ class ServiceController extends Controller
         if($validator->fails()){
             return $validator->errors();
         }else{
+            $city = City::find(strip_tags($req->city));
+            if(!$city){
+                return response()->json(["error"=>"Invalid City ID"], 200);
+            }
             $services = Service::all();
             foreach($services as $services){
                 if($services->title == $req->title && $services->id!=$id){
@@ -96,10 +106,14 @@ class ServiceController extends Controller
                 }
             }
             $service->title = strip_tags($req->title);
-            $service->city = strip_tags($req->city);
+            $service->city = strip_tags($city->id);
             $service->url = strtolower(strip_tags($req->url));
             $result = $service->save();
-            
+            $sub_services = Sub_Service::where('service_id', $service->id)->get();
+            foreach($sub_services as $sub_service){
+                $sub_service->city = $city->id;
+                $sub_service->save();
+            }
             if($result){
                 return response()->json(["result"=>"Department updated"], 201);
             }else{

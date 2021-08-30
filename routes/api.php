@@ -12,6 +12,9 @@ use App\Http\Controllers\ForumReplyController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\FormFieldController;
+use App\Http\Controllers\RequirementEnquiryFormController;
+use App\Http\Controllers\ContactEnquiryFormController;
+use App\Http\Controllers\SubServiceFormFieldController;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +86,7 @@ Route::post('form-field/create', [FormFieldController::class, 'create'])->middle
 Route::get('form-field/view-all', [FormFieldController::class, 'viewAll'])->middleware('auth:sanctum');
 Route::get('form-field/view/{id}', [FormFieldController::class, 'view'])->middleware('auth:sanctum');
 Route::post('form-field/set-status/{id}', [FormFieldController::class, 'set_status'])->middleware('auth:sanctum');
+Route::delete('form-field/delete/{id}', [FormFieldController::class, 'delete'])->middleware('auth:sanctum');
 
 // testimonial api
 Route::post('testimonial/create', [TestimonialController::class, 'create'])->middleware('auth:sanctum');
@@ -91,6 +95,23 @@ Route::post('testimonial/update/{id}', [TestimonialController::class, 'update'])
 Route::get('testimonial/view-by-id/{id}', [TestimonialController::class, 'viewById'])->middleware('auth:sanctum');
 Route::post('testimonial/update-logo/{id}', [TestimonialController::class, 'update_logo'])->middleware('auth:sanctum');
 Route::delete('testimonial/delete/{id}', [TestimonialController::class, 'delete'])->middleware('auth:sanctum');
+
+// requirement enquiry api
+Route::post('requirement/create', [RequirementEnquiryFormController::class, 'create']);
+Route::get('requirement/view', [RequirementEnquiryFormController::class, 'viewAll'])->middleware('auth:sanctum');
+Route::delete('requirement/delete/{id}', [RequirementEnquiryFormController::class, 'delete'])->middleware('auth:sanctum');
+
+// contact enquiry api
+Route::post('contact/create', [ContactEnquiryFormController::class, 'create']);
+Route::get('contact/view', [ContactEnquiryFormController::class, 'viewAll'])->middleware('auth:sanctum');
+Route::delete('contact/delete/{id}', [ContactEnquiryFormController::class, 'delete'])->middleware('auth:sanctum');
+
+// sub service form fields
+Route::post('sub-service-form-fields/create/{sub_service_id}', [SubServiceFormFieldController::class, 'create'])->middleware('auth:sanctum');
+Route::post('sub-service-form-fields/create-form-entry/{sub_service_id}', [SubServiceFormFieldController::class, 'create_custom_sub_service_form_field_data_entry'])->middleware('auth:sanctum');
+Route::get('sub-service-form-fields/view-all/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all']);
+Route::get('sub-service-form-fields/view-all-order/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all_order']);
+Route::get('sub-service-form-fields/view-all-search/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all_search'])->middleware('auth:sanctum');
 
 Route::get('forum-reply/view/{forum_id}', [ForumReplyController::class, 'view']);
 Route::post('admin/login', [AdminController::class, 'login']);

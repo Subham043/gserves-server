@@ -19,7 +19,7 @@ class CreateSubServicesTable extends Migration
             $table->string('description');
             $table->string('tag_line');
             $table->string('storage_table_name')->unique();
-            $table->string('city');
+            $table->bigInteger('city')->unsigned();
             $table->string('output');
             $table->integer('option_online')->default(0);
             $table->integer('option_person')->default(0);
@@ -29,8 +29,8 @@ class CreateSubServicesTable extends Migration
             $table->integer('govt_fees');
             $table->integer('other_expenses');
             $table->integer('service_charges');
-            $table->integer('service_id');
-            $table->integer('user_id');
+            $table->bigInteger('service_id')->unsigned();
+            $table->bigInteger('user_id')->unsigned();
             $table->timestamp('created_at')->nullable(true)->useCurrent();
             $table->timestamp('updated_at')->nullable(true)->useCurrent();
         });
