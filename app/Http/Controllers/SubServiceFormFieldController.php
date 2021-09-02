@@ -10,6 +10,7 @@ use App\Models\Form_Field;
 use App\Models\Choices;
 use App\Models\User;
 use App\Models\Sub_Service_Form_Field;
+use App\Models\SubServiceFormFieldChoice;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -127,6 +128,17 @@ class SubServiceFormFieldController extends Controller
                     $sub_service_form_field->service_id = $sub_service->service_id;
                     $sub_service_form_field->user_id = $user->id;
                     $sub_service_form_field->save();
+
+                    if($sub_service_form_field->field_type=="multiple choice"){
+                        $form_field_for_choice = Form_Field::where('field_name',$sub_service_form_field->field_name)->where('field_type',"multiple choice")->get();
+                        $choice = DB::table('choices')->where('form_field_id',$form_field_for_choice->id)->get()->toArray();
+                        foreach($choice as $choice){
+                            $choice_table = new SubServiceFormFieldChoice;
+                            $choice_table->choice = $choice->choice;
+                            $choice_table->sub_service_form_field_id = $sub_service_form_field->id;
+                            $choice_table->save();
+                        }
+                    }
 
                     if($sub_service_form_field->field_type=="email" || $sub_service_form_field->field_type=="text"){
                         Schema::table($sub_service->storage_table_name, function (Blueprint $table) use ($Field_Name) {
@@ -253,6 +265,17 @@ class SubServiceFormFieldController extends Controller
                     $sub_service_form_field->service_id = $sub_service->service_id;
                     $sub_service_form_field->user_id = $user->id;
                     $sub_service_form_field->save();
+
+                    if($sub_service_form_field->field_type=="multiple choice"){
+                        $form_field_for_choice = Form_Field::where('field_name',$sub_service_form_field->field_name)->where('field_type',"multiple choice")->get();
+                        $choice = DB::table('choices')->where('form_field_id',$form_field_for_choice[0]->id)->get()->toArray();
+                        foreach($choice as $choice){
+                            $choice_table = new SubServiceFormFieldChoice;
+                            $choice_table->choice = $choice->choice;
+                            $choice_table->sub_service_form_field_id = $sub_service_form_field->id;
+                            $choice_table->save();
+                        }
+                    }
 
                     if($sub_service_form_field->field_type=="email" || $sub_service_form_field->field_type=="text"){
                         Schema::table($sub_service->storage_table_name, function (Blueprint $table) use ($Field_Name) {
@@ -456,7 +479,25 @@ class SubServiceFormFieldController extends Controller
         if(!$sub_service){
             return response()->json(["error"=>"invalid sub-service id"], 200);
         }
-        return ["result"=>Sub_Service_Form_Field::where('sub_service_id',$sub_service_id)->orderBy('order_number')->get()];
+
+        $sub__service__form__fields = DB::table('sub__service__form__fields')->where('sub_service_id',$sub_service_id)->orderBy('order_number')->get()->toArray();
+        $sub_service_form_field_choices = DB::table('sub_service_form_field_choices')->get()->toArray();
+        
+        foreach($sub__service__form__fields as &$form__field)
+        {
+            $form__field->choices = array();
+            foreach($sub_service_form_field_choices as &$choice)
+            {
+                if($form__field->field_type=="multiple choice"){
+                    if($choice->sub_service_form_field_id==$form__field->id){
+                        array_push($form__field->choices, $choice);
+                    }
+                }
+            }
+            
+        }
+        
+        return ["result"=>$sub__service__form__fields];
     }
 
     //create sub service form fields entry of data by user

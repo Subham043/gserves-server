@@ -24,7 +24,7 @@ class ForumReplyController extends Controller
         
 
         $rules = array(
-            "message" => "required",
+            "message" => "required|regex:/^[a-z 0-9~%.:_\@\-\/\&+=,]+$/i",
         );
         $validator = Validator::make($req->all(), $rules);
 
@@ -32,11 +32,12 @@ class ForumReplyController extends Controller
             return $validator->errors();
         }else{
             
-            $service = new Forum_Reply;
-            $service->message = strip_tags($req->message);
-            $service->user_id = $user->id;
-            $service->forum_id = $forum->id;
-            $result = $service->save();
+            $forum_reply = new Forum_Reply;
+            $forum_reply->message = strip_tags($req->message);
+            $forum_reply->user_id = $user->id;
+            $forum_reply->forum_id = $forum->id;
+            $forum_reply->service_id = $forum->service_id;
+            $result = $forum_reply->save();
             if($result){
                 return response()->json(["result"=>"forum reply created"], 201);
             }else{
@@ -55,25 +56,25 @@ class ForumReplyController extends Controller
         }
         
 
-        $service = Forum_Reply::find($id);
-        if(!$service){
+        $forum_reply = Forum_Reply::find($id);
+        if(!$forum_reply){
             return response()->json(["error"=>"invalid forum reply id"], 200);
         }
 
-        if($user->id!=$service->user_id){
+        if($user->id!=$forum_reply->user_id){
             return response()->json(["error"=>"Not the owner of the forum reply"], 200);
         }
 
         $rules = array(
-            "message" => "required",
+            "message" => "required|regex:/^[a-z 0-9~%.:_\@\-\/\&+=,]+$/i",
         );
         $validator = Validator::make($req->all(), $rules);
         if($validator->fails()){
             return $validator->errors();
         }else{
             
-            $service->message = strip_tags($req->message);
-            $result = $service->save();
+            $forum_reply->message = strip_tags($req->message);
+            $result = $forum_reply->save();
             
             if($result){
                 return response()->json(["result"=>"forum reply updated"], 201);
@@ -91,16 +92,16 @@ class ForumReplyController extends Controller
         }
         
 
-        $service = Forum_Reply::find($id);
-        if(!$service){
+        $forum_reply = Forum_Reply::find($id);
+        if(!$forum_reply){
             return response()->json(["error"=>"invalid forum reply id"], 200);
         }
 
-        if($user->id!=$service->user_id){
+        if($user->id!=$forum_reply->user_id){
             return response()->json(["error"=>"Not the owner of the forum reply"], 200);
         }
 
-        $service->delete();
+        $forum_reply->delete();
         return response()->json(["result"=>"forum reply deleted"], 200);
     }
 

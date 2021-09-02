@@ -16,8 +16,9 @@ class CreateForumRepliesTable extends Migration
         Schema::create('forum__replies', function (Blueprint $table) {
             $table->id();
             $table->string('message');
-            $table->integer('user_id');
-            $table->integer('forum_id');
+            $table->bigInteger('user_id')->unsigned();
+            $table->bigInteger('forum_id')->unsigned();
+            $table->bigInteger('service_id')->unsigned();
             $table->timestamp('created_at')->nullable(true)->useCurrent();
             $table->timestamp('updated_at')->nullable(true)->useCurrent();
         });

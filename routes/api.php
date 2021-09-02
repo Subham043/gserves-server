@@ -65,12 +65,16 @@ Route::get('sub-service-fields/view-for-admin-id/{sub_service_id}', [SubServiceF
 Route::post('sub-service-fields/set-status/{sub_service_field_id}', [SubServiceFieldController::class, 'set_status'])->middleware('auth:sanctum');
 Route::post('sub-service-fields/enter-data/{sub_service_id}', [SubServiceFieldController::class, 'create_custom_sub_service_field_data'])->middleware('auth:sanctum');
 
-Route::post('forum/create', [ForumController::class, 'create'])->middleware('auth:sanctum');
-Route::get('forum/view', [ForumController::class, 'view']);
-Route::put('forum/update/{id}', [ForumController::class, 'update'])->middleware('auth:sanctum');
+// forum api
+Route::post('forum/create/{service_id}', [ForumController::class, 'create'])->middleware('auth:sanctum');
+Route::get('forum/view', [ForumController::class, 'view'])->middleware('auth:sanctum');
+Route::get('forum/view-all/{service_id}', [ForumController::class, 'viewAll'])->middleware('auth:sanctum');
+Route::post('forum/update/{id}', [ForumController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('forum/delete/{id}', [ForumController::class, 'delete'])->middleware('auth:sanctum');
+
+// forum reply api
 Route::post('forum-reply/create/{forum_id}', [ForumReplyController::class, 'create'])->middleware('auth:sanctum');
-Route::put('forum-reply/update/{id}', [ForumReplyController::class, 'update'])->middleware('auth:sanctum');
+Route::post('forum-reply/update/{id}', [ForumReplyController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('forum-reply/delete/{id}', [ForumReplyController::class, 'delete'])->middleware('auth:sanctum');
 
 
@@ -117,7 +121,7 @@ Route::get('sub-service-form-fields/view-all/{sub_service_id}', [SubServiceFormF
 Route::get('sub-service-form-fields/view-all-order/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all_order']);
 Route::get('sub-service-form-fields/view-all-search/{sub_service_id}', [SubServiceFormFieldController::class, 'view_all_search'])->middleware('auth:sanctum');
 
-Route::get('forum-reply/view/{forum_id}', [ForumReplyController::class, 'view']);
+
 Route::post('admin/login', [AdminController::class, 'login']);
 Route::post('admin/forgot-password', [AdminController::class, 'forgot_password']);
 Route::post('admin/reset-password/{email}', [AdminController::class, 'reset_password']);
